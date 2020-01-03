@@ -57,9 +57,73 @@ object HOFsAndCurries extends App {
   println(two_decimalplaces_formatter(Math.PI)) //3.14
   println(three_decimalplaces_formatter(Math.PI)) //3.142
 
-  def toCurry(f: (Int, Int) => Int) : (Int=>Int=>Int) = {
+  //toCurry -takes: "a function (call it f1) that takes 2 ints and returns an int" , eg f1=(a,b)=>a*b
+  //        -returns: a function (call it f2) that -takes an int
+  //                                               -returns a function (call it f3) that takes an int and returns an int
+  //        -the returned function (f2) will take an int which is (probably) used when the function that it itself returns (f3) is invoked
+  def toCurry(f: (Int, Int) => Int) :  Int=>(Int=>Int) = {
+  //aka                             : (Int=>(Int=>Int)) =
+  //returns "a function that -takes an int (x) and
+  //                         -returns a function that takes an int and returns an int (f(x,y))"
     x=>y=>f(x, y)
+    //aka
+    //x=>(y=>f(x, y))
   }
+  //example:
+  val f1=(a:Int, b:Int) => a*b //f1 is the function to be curried; it takes 2 ints but we are going to curry it so that
+                               //it can effectively be split into a function f2 that takes an int and the function that f2
+                               //returns (f3) that also takes an int
+  val f2= toCurry(f1)   //f2 is our curried function that takes an int and returns "a function that takes an int and returns an int"
+                        //let us now call f2 with an int....
+  val tripler = f2(3)   //f2(3) returns our new function tripler, which is is "a function that takes an int and returns an int"
+  println(tripler(100)) //we pass the value 3 to tripler; it returns the result (an int)
+
+
+  //fromCurry - takes function that -takes an int
+  //                                -returns "a function that takes an int and returns an int"
+  //          - returns a function that takes 2 ints and returns an int
+  def fromCurry(f: Int=>(Int=>Int)) : (Int, Int)=>Int = {
+    (x: Int, y: Int) => f(x)(y)
+  }
+
+  //f10 is our curried function - we want to uncurry it
+  //it is a function that takes an int (x) and returns "a function that takes an int (y) and returns an int (using the algorithm x*y)"
+  val f10 : (Int => (Int=>Int)) = x => y => x*y
+  //aka i.e. a little more verbosely
+  val f10a: (Int => (Int=>Int)) = (x:Int) => ((y:Int) => x*y)
+  //f11 is going to be a function that takes 2 ints and returns an int
+  val f11 = fromCurry(f10)
+  //call it
+  println(f11(3, 4))
+
+  //compose is a function that takes 2 functions f(x) and g(y) and returns a function that computes f(g(y))
+  def compose(f: Int=>Int, g: Int=>Int) : Int=>Int =
+    x=>f(g(x))
+
+  val f20 = compose (x=> { println(s"computing ${x}*15"); x*15}, y=> { println(s"computing ${y}*30"); y*30;} )
+  println(f20(3))
+
+  //andThen is a function that takes 2 functions f(x) and g(y) and returns a function that computes g(f(x))
+  def andThen(f: Int=>Int, g: Int=>Int) : Int=>Int =
+    x=>g(f(x))
+
+  val f30 = andThen(x=> { println(s"computing ${x}*15"); x*15}, y=> { println(s"computing ${y}*30"); y*30;} )
+  println(f30(3))
+
+  //genericised:
+  def composeGeneric[A,B,C](f: A=>B, g: C=>A) : C=>B =
+    x=>f(g(x))
+
+  //genericised:
+  def andThenGeneric[A,B,C](f: A=>B, g: B=>C) : A=>C =
+    x=>g(f(x))
+
+  val f40 = composeGeneric ((x:Int)=> { println(s"cG computing ${x}*15"); x*15}, (y:Int)=> { println(s"computing ${y}*30"); y*30;} )
+  println(f40(3))
+
+  val f50 = andThenGeneric ((x:Int)=> { println(s"aTG computing ${x}*15"); x*15}, (y:Int)=> { println(s"computing ${y}*30"); y*30;} )
+  println(f50(3))
+
 
 
 }
