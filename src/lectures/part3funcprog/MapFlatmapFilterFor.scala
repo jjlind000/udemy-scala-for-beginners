@@ -71,7 +71,28 @@ object MapFlatmapFilterFor extends App {
 
   val thisList = nums;
   val otherList = chars;
+  val strings = List("AA", "BB", "CC")
   val f: (Int, Char) => String = (x:Int, y:Char) => "" + x + "==>" + y
-  println(thisList.flatMap(x=>otherList.map(y=>f(x,y))))
+  val g: (Int, Char, String) => String = (x:Int, y:Char, z:String) => "" + x + "==>" + y + "(" + z + ")" + "\n"
 
+  println(thisList.flatMap(x=>otherList.map(y=>f(x,y))))
+  println(thisList.flatMap(a=>otherList.flatMap(b=>strings.map(c=> g(a,b,c)))))
+
+  val forComp = for {
+    i <- nums if i%2 == 0
+    c <- chars
+    s <- strings
+  } yield "" + i + "==>" + c + "(" + s + ")"
+
+  for {
+    i <- nums if i % 2 == 0
+  } println (">>" + i)
+
+  val l = nums.map {
+    i => i*2
+  }
+
+  println(l)
+
+  //println(forComp)
 }
